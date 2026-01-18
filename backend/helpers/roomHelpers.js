@@ -1,22 +1,30 @@
-
+/**
+ * Travel Time Rules:
+ * - Horizontal: 1 minute per room difference
+ * - Vertical: 2 minutes per floor difference
+ * - Total = horizontal + vertical
+ */
 const calculateTravelTime = (room1, room2) => {
   const verticalTime = Math.abs(room1.floor - room2.floor) * 2;
   const horizontalTime = Math.abs(room1.position - room2.position);
   return verticalTime + horizontalTime;
 };
 
-
+/**
+ * Finds the best contiguous set of rooms on the same floor
+ * that minimizes horizontal distance.
+ */
 const getBestOnSameFloor = (rooms, numRooms) => {
   let bestSubset = null;
   let minHorizontalSpan = Infinity;
 
   for (let i = 0; i <= rooms.length - numRooms; i++) {
     const subset = rooms.slice(i, i + numRooms);
-    const horizontalSpan =
+    const span =
       subset[subset.length - 1].position - subset[0].position;
 
-    if (horizontalSpan < minHorizontalSpan) {
-      minHorizontalSpan = horizontalSpan;
+    if (span < minHorizontalSpan) {
+      minHorizontalSpan = span;
       bestSubset = subset;
     }
   }
@@ -24,39 +32,51 @@ const getBestOnSameFloor = (rooms, numRooms) => {
   return bestSubset;
 };
 
+/**
+ * Main booking function
+ */
 const findOptimalRooms = (availableRooms, numRooms) => {
-  if (!availableRooms || availableRooms.length < numRooms) return null;
+  if (!availableRooms || numRooms > 5) return null;
 
+  // 1️⃣ Filter available rooms and sort by (floor, position)
   const rooms = availableRooms
-    .filter(room => room.available)
+    .filter(r => r.available)
     .sort((a, b) =>
       a.floor !== b.floor ? a.floor - b.floor : a.position - b.position
     );
 
-  let bestCombination = null;
-  let minTravelTime = Infinity;
+  if (rooms.length < numRooms) return null;
 
-  const uniqueFloors = [...new Set(rooms.map(room => room.floor))];
+  // 2️⃣ RULE: Same-floor booking has highest priority
+  const floors = [...new Set(rooms.map(r => r.floor))];
 
-  for (const floor of uniqueFloors) {
-    const floorRooms = rooms.filter(room => room.floor === floor);
+  for (const floor of floors) {
+    const floorRooms = rooms.filter(r => r.floor === floor);
 
     if (floorRooms.length >= numRooms) {
       return getBestOnSameFloor(floorRooms, numRooms);
     }
   }
 
-  for (let i = 0; i <= rooms.length - numRooms; i++) {
-    const combination = rooms.slice(i, i + numRooms);
+  // 3️⃣ RULE: Span floors → minimize total travel time
+  let bestCombination = null;
+  let minTravelTime = Infinity;
 
-    const travelTime = calculateTravelTime(
-      combination[0],
-      combination[combination.length - 1]
-    );
+  /**
+   * Key idea:
+   * Only the FIRST and LAST room determine travel time.
+   * Middle rooms do not affect travel cost.
+   */
+  for (let i = 0; i < rooms.length; i++) {
+    for (let j = i + numRooms - 1; j < rooms.length; j++) {
+      const travelTime = calculateTravelTime(rooms[i], rooms[j]);
 
-    if (travelTime < minTravelTime) {
-      minTravelTime = travelTime;
-      bestCombination = combination;
+      if (travelTime < minTravelTime) {
+        minTravelTime = travelTime;
+
+        // Take the closest `numRooms` between i and j
+        bestCombination = rooms.slice(i, j + 1).slice(0, numRooms);
+      }
     }
   }
 
