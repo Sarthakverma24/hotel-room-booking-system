@@ -1,44 +1,62 @@
-// Calculate travel time between two rooms
+
 const calculateTravelTime = (room1, room2) => {
   const verticalTime = Math.abs(room1.floor - room2.floor) * 2;
-  const horizontalTime = room1.floor === room2.floor ? Math.abs(room1.position - room2.position) : 0;
+  const horizontalTime = Math.abs(room1.position - room2.position);
   return verticalTime + horizontalTime;
 };
 
-// Find optimal rooms for booking
+
+const getBestOnSameFloor = (rooms, numRooms) => {
+  let bestSubset = null;
+  let minHorizontalSpan = Infinity;
+
+  for (let i = 0; i <= rooms.length - numRooms; i++) {
+    const subset = rooms.slice(i, i + numRooms);
+    const horizontalSpan =
+      subset[subset.length - 1].position - subset[0].position;
+
+    if (horizontalSpan < minHorizontalSpan) {
+      minHorizontalSpan = horizontalSpan;
+      bestSubset = subset;
+    }
+  }
+
+  return bestSubset;
+};
+
 const findOptimalRooms = (availableRooms, numRooms) => {
-  if (availableRooms.length < numRooms) return null;
+  if (!availableRooms || availableRooms.length < numRooms) return null;
+
+  const rooms = availableRooms
+    .filter(room => room.available)
+    .sort((a, b) =>
+      a.floor !== b.floor ? a.floor - b.floor : a.position - b.position
+    );
 
   let bestCombination = null;
   let minTravelTime = Infinity;
 
-  // Try combinations by floor first
-  for (let floor = 1; floor <= 10; floor++) {
-    const floorRooms = availableRooms.filter(room => room.floor === floor);
+  const uniqueFloors = [...new Set(rooms.map(room => room.floor))];
+
+  for (const floor of uniqueFloors) {
+    const floorRooms = rooms.filter(room => room.floor === floor);
+
     if (floorRooms.length >= numRooms) {
-      const selectedRooms = floorRooms.slice(0, numRooms);
-      const travelTime = calculateTravelTime(selectedRooms[0], selectedRooms[selectedRooms.length - 1]);
-      if (travelTime < minTravelTime) {
-        minTravelTime = travelTime;
-        bestCombination = selectedRooms;
-      }
+      return getBestOnSameFloor(floorRooms, numRooms);
     }
   }
 
-  // If no single floor has enough rooms, find cross-floor combination
-  if (!bestCombination) {
-    const sortedRooms = availableRooms.sort((a, b) => {
-      if (a.floor !== b.floor) return a.floor - b.floor;
-      return a.position - b.position;
-    });
-    
-    for (let i = 0; i <= sortedRooms.length - numRooms; i++) {
-      const combination = sortedRooms.slice(i, i + numRooms);
-      const travelTime = calculateTravelTime(combination[0], combination[combination.length - 1]);
-      if (travelTime < minTravelTime) {
-        minTravelTime = travelTime;
-        bestCombination = combination;
-      }
+  for (let i = 0; i <= rooms.length - numRooms; i++) {
+    const combination = rooms.slice(i, i + numRooms);
+
+    const travelTime = calculateTravelTime(
+      combination[0],
+      combination[combination.length - 1]
+    );
+
+    if (travelTime < minTravelTime) {
+      minTravelTime = travelTime;
+      bestCombination = combination;
     }
   }
 
