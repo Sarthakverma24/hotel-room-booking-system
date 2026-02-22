@@ -1,88 +1,36 @@
-# 🚀 Deployment Guide
+# Sutreya Deployment Guide
 
-## Backend Deployment (Railway)
+## Backend (Railway)
+Already configured at: https://unstop-production.up.railway.app
 
-### 1. Setup Railway Account
-- Go to [railway.app](https://railway.app)
-- Sign up with GitHub account
-- Install Railway CLI: `npm install -g @railway/cli`
+Set environment variables in Railway dashboard:
+- SUPABASE_PROJECT_ID
+- SUPABASE_DB_USER
+- SUPABASE_DB_PASSWORD
+- REVENUECAT_WEBHOOK_SECRET
+- STRIPE_SECRET_KEY
 
-### 2. Deploy Backend
-```bash
-cd backend
-railway login
-railway init
-railway up
-```
+## Frontend (Vercel)
+Already configured at: https://frontend-murex-sigma.vercel.app
 
-### 3. Get Backend URL
-- After deployment, Railway will provide a URL like: `https://your-app-name.railway.app`
-- Note this URL for frontend configuration
+For React Native mobile app:
+1. Build iOS: `cd frontend && npx expo build:ios`
+2. Build Android: `cd frontend && npx expo build:android`
+3. Submit to App Store / Play Store
 
-## Frontend Deployment (Vercel)
+## Database (Supabase)
+1. Create project at supabase.com
+2. Run database/schema.sql in SQL Editor
+3. Enable Row Level Security
+4. Copy connection string to Railway
 
-### 1. Setup Vercel Account
-- Go to [vercel.com](https://vercel.com)
-- Sign up with GitHub account
-- Install Vercel CLI: `npm install -g vercel`
+## RevenueCat Setup
+1. Create project at revenuecat.com
+2. Add iOS/Android apps
+3. Configure webhook: https://unstop-production.up.railway.app/api/v1/webhooks/revenuecat
+4. Copy API keys to mobile app
 
-### 2. Configure Environment
-Create `.env.production` in frontend folder:
-```
-REACT_APP_API_URL=https://your-backend-url.railway.app/api
-```
-
-### 3. Deploy Frontend
-```bash
-cd frontend
-vercel login
-vercel --prod
-```
-
-## Alternative: One-Click Deployment
-
-### Railway (Backend)
-1. Push code to GitHub
-2. Go to Railway dashboard
-3. Click "New Project" → "Deploy from GitHub repo"
-4. Select your repository and `backend` folder
-5. Set environment variable: `FRONTEND_URL=https://your-frontend-url.vercel.app`
-
-### Vercel (Frontend)
-1. Go to Vercel dashboard
-2. Click "New Project" → Import from GitHub
-3. Select your repository and `frontend` folder
-4. Add environment variable: `REACT_APP_API_URL=https://your-backend-url.railway.app/api`
-5. Deploy
-
-## Environment Variables
-
-### Backend (Railway)
-```
-FRONTEND_URL=https://your-frontend-url.vercel.app
-PORT=5000
-```
-
-### Frontend (Vercel)
-```
-REACT_APP_API_URL=https://your-backend-url.railway.app/api
-```
-
-## Post-Deployment
-
-1. Test the live application
-2. Update README with live URLs
-3. Test all features (login, booking, admin controls)
-
-## Troubleshooting
-
-- **CORS Issues**: Ensure FRONTEND_URL is set correctly in Railway
-- **API Not Found**: Check REACT_APP_API_URL in Vercel
-- **Build Fails**: Check logs in respective platforms
-
-## Live URLs Template
-```
-Frontend: https://your-app.vercel.app
-Backend: https://your-app.railway.app
-API: https://your-app.railway.app/api
-```
+## Stripe Setup
+1. Create account at stripe.com
+2. Configure webhook: https://unstop-production.up.railway.app/api/v1/webhooks/stripe
+3. Copy secret keys to Railway
